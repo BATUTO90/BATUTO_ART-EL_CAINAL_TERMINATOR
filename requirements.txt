@@ -1,18 +1,5 @@
-# ==========================================
-# REQUERIMIENTOS - EL CAINAL 🤪💯
-# ==========================================
-
-# Core HTTP & APIs
-requests>=2.31.0
-
-# Webhook / Backend
-flask>=3.0.1
-
-# UI Humana
-gradio>=4.15.0
-
-# Imagen y firma BATUTO-ART
-Pillow>=10.2.0
-
-# Gestión de Secretos y Configuración
-python-dotenv>=1.0.1
+flask
+gradio
+python-dotenv
+requests
+Pillow
