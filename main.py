@@ -266,3 +266,176 @@ def chat_cainal(mensaje_usuario: str) -> str:
             "⚠️ El CAINAL sigue firme, pero hubo interferencia externa.\n"
             f"Detalle técnico: {str(e)}"
     )
+# =========================================================
+# PROTOCOLO VISUAL — REVE CREATE + FIRMA BATUTO-ART
+# =========================================================
+
+def procesar_imagen_batuto(image_data: bytes) -> str:
+    """
+    Aplica la firma BATUTO-ART estilo liquid gold marker
+    y guarda la imagen final en la carpeta de salida.
+    """
+    # Abrir imagen desde binario
+    img = Image.open(BytesIO(image_data)).convert("RGBA")
+    draw = ImageDraw.Draw(img)
+    width, height = img.size
+
+    # Tamaño de fuente ~5% del ancho
+    font_size = max(18, int(width * 0.05))
+    try:
+        # Idealmente aquí pones una fuente más callejera (graffiti.ttf, etc.)
+        font = ImageFont.truetype("arial.ttf", font_size)
+    except Exception:
+        font = ImageFont.load_default()
+
+    # Color Liquid Gold (dorado intenso)
+    gold_color = (255, 215, 0, 255)
+
+    # Texto y posición (esquina superior izquierda con margen)
+    firma_texto = "BATUTO-ART"
+    margin_x, margin_y = int(width * 0.02), int(height * 0.02)
+
+    # Sombra leve para que se lea sobre fondos claros
+    shadow_color = (0, 0, 0, 160)
+    shadow_offset = 2
+    draw.text(
+        (margin_x + shadow_offset, margin_y + shadow_offset),
+        firma_texto,
+        font=font,
+        fill=shadow_color
+    )
+    draw.text(
+        (margin_x, margin_y),
+        firma_texto,
+        font=font,
+        fill=gold_color
+    )
+
+    # Guardar en carpeta de salida con timestamp
+    filename = f"cainal_{int(time.time())}.png"
+    path = os.path.join(CONFIG["OUTPUT_DIR"], filename)
+    img.save(path)
+    return path
+
+
+def generar_imagen_cainal(prompt_visual: str) -> str:
+    """
+    Genera imagen vía REVE y le clava la firma de la jerarquía BATUTO-ART.
+    Si algo truena, regresa mensaje de error entendible.
+    """
+    if not CONFIG.get("REVE_KEY"):
+        return "⚠️ No hay llave REVE registrada, mi rey. Sin API no hay cuadro."
+
+    headers = {"Authorization": f"Bearer {CONFIG['REVE_KEY']}"}
+    # Ajusta estos parámetros según lo que soporte REVE en tu endpoint
+    payload = {
+        "prompt": prompt_visual,
+        "aspect_ratio": "9:16",
+        "quality": "high"
+    }
+
+    try:
+        resp = requests.post(
+            CONFIG["REVE_URL"],
+            headers=headers,
+            json=payload,
+            timeout=120
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+        # Dos escenarios típicos: o viene base64 o viene URL
+        image_b64 = data.get("image")
+        image_url = data.get("url")
+
+        if image_b64:
+            image_bytes = base64.b64decode(image_b64)
+        elif image_url:
+            img_res = requests.get(image_url, timeout=60)
+            img_res.raise_for_status()
+            image_bytes = img_res.content
+        else:
+            return "⚠️ El REVE no mandó ni base64 ni URL, puro aire digital."
+
+        # Firma sagrada BATUTO-ART
+        path_final = procesar_imagen_batuto(image_bytes)
+        return path_final
+
+    except requests.exceptions.Timeout:
+        return "⚠️ El REVE se tardó de más, la red anda bien troleada."
+    except Exception as e:
+        return f"⚠️ Fallo en la matriz visual: {str(e)}"
+    # =========================================================
+# UI HUMANA — PORTAL DE CONTROL DEL CAINAL 🤪💯
+# =========================================================
+
+def portal_cainal(mensaje: str, tipo_accion: str):
+    """
+    Punto único de entrada desde la UI humana.
+    - Si es cotorreo: usa chat_cainal (SambaNova).
+    - Si es arte visual: usa REVE + firma BATUTO-ART.
+    """
+    mensaje = (mensaje or "").strip()
+    if not mensaje:
+        return "⚠️ Suelta algo primero, mi rey. No puedo jalar con puro vacío.", None
+
+    if tipo_accion == "Cotorreo (Texto)":
+        respuesta = chat_cainal(mensaje)
+        return respuesta, None
+
+    # Arte visual
+    path_imagen = generar_imagen_cainal(mensaje)
+
+    # Si la función de imagen regresó un mensaje de error en lugar de un path
+    if isinstance(path_imagen, str) and not os.path.exists(path_imagen):
+        # path_imagen contiene el mensaje de error ya formateado
+        return path_imagen, None
+
+    return (
+        "🔥 Amonos, jale visual terminado. La pieza ya trae firma BATUTO-ART.",
+        path_imagen
+    )
+
+
+with gr.Blocks(theme=gr.themes.Soft()) as interface:
+    gr.Markdown(
+        "# EL CAINAL 🤪💯\n"
+        "### Sistema Operativo de la Jerarquía BATUTO-ART\n"
+        "Cotorreo fino, ejecución seria. Pide texto o arte y el sistema se encarga."
+    )
+
+    with gr.Row():
+        with gr.Column():
+            entrada = gr.Textbox(
+                label="Instrucción pal' barrio",
+                placeholder="Escribe aquí o pide un diseño bien específico...",
+                lines=3
+            )
+            accion = gr.Radio(
+                ["Cotorreo (Texto)", "Arte Visual (Imagen)"],
+                label="¿Qué jale ocupas?",
+                value="Cotorreo (Texto)"
+            )
+            boton = gr.Button("¡Zúmbale!")
+
+        with gr.Column():
+            salida_texto = gr.Textbox(
+                label="Respuesta del CAINAL",
+                lines=6
+            )
+            salida_imagen = gr.Image(
+                label="Galería BATUTO-ART",
+                type="filepath"
+            )
+
+    boton.click(
+        fn=portal_cainal,
+        inputs=[entrada, accion],
+        outputs=[salida_texto, salida_imagen]
+    )
+
+
+if __name__ == "__main__":
+    print("🔥 EL CAINAL está en la casa. Protocolo BATUTO-ART activado.")
+    interface.launch(share=True)
+    
