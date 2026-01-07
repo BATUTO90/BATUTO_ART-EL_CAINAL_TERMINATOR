@@ -1,0 +1,8 @@
+BATUTO_ART-EL_CAINAL_TERMINATOR/
+├── .github/workflows/
+│   └── ci.yml              # Workflow de CI (modificado)
+├── .env.example            # Template de variables de entorno
+├── requirements.txt        # Dependencias de Python
+├── main.py                # Código principal
+├── test_cainal.py         # Tests unitarios (opcional)
+└── README.md              # Documentación
