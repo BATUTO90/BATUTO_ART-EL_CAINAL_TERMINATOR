@@ -9,19 +9,15 @@ import gradio as gr
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 
-# =========================================================
-# CONFIGURACIÓN SUPREMA
-# =========================================================
-
 CONFIG = {
     "SAMBANOVA_URL": "https://api.sambanova.ai/v1/chat/completions",
-    "SAMBANOVA_KEY": os.getenv("SAMBANOVA_API_KEY"),
+    "SAMBANOVA_KEY": api_keys["SAMBANOVA"],
     "SAMBANOVA_MODEL": "gpt-oss-120b",
 
     "REVE_URL": "https://api.reve.com/v1/image/create",
-    "REVE_KEY": os.getenv("REVE_API_KEY"),
+    "REVE_KEY": api_keys["REVE"],
 
-    "ELEVEN_KEY": os.getenv("ELEVEN_API_KEY"),
+    "ELEVEN_KEY": api_keys["ELEVEN"],
 
     "OUTPUT_DIR": "salida_cainal",
     "WEBHOOK_PORT": 3000,
